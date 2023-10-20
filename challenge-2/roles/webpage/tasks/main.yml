@@ -21,6 +21,7 @@
     src: "{{ item }}"
     dest: /tmp/dockerbuild/
     mode: "0600"
+    trim_blocks: false
   loop:
     - Dockerfile
     - index.html
@@ -38,7 +39,7 @@
   community.docker.docker_container: &container_args
     name: webpage
     image: local/webpage
-    ports:
+    published_ports:
       - 127.0.0.1:12345:80
     state: started
     restart_policy: always

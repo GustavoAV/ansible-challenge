@@ -15,14 +15,21 @@
       - cryptography<3.4,>=2.1.4
       - certifi<=2020.4.5.1
     state: present
+    editable: false
 
 - name: Generate dhparams
-  community.crypto.openssl_dhparam:
-    path: /etc/nginx/dhparams.pem
-    state: present
-    size: 1024
-    mode: "0400"
+  ansible.builtin.shell: openssl dhparam -out /etc/nginx/dhparams.pem 1024
+  args:
+    creates: /etc/nginx/dhparams.pem
   register: dhparams
+
+# - name: Generate dhparams
+#   community.crypto.openssl_dhparam:
+#     path: /etc/nginx/dhparams.pem
+#     state: present
+#     size: 1024
+#     mode: "0400"
+#   register: dhparams
 
 - name: Generate a private key
   community.crypto.openssl_privatekey:
@@ -46,15 +53,16 @@
   community.crypto.x509_certificate_info:
     path: *cert_path
     valid_at:
-      time: "+31536000s"
-    # provider: assertonly
-    # valid_at: "31536000"
+      time: +31536000s
+  register: openssl_cert_verify
+  failed_when: not openssl_cert_verify.valid_at.time
 
 - name: Template out the nginx config file
   ansible.builtin.template:
     src: "nginx-{{ ansible_distribution }}.conf"
     dest: /etc/nginx/nginx.conf
     mode: u=rw,g=rw,o=r
+    trim_blocks: true
   register: nginx_config
 
 - name: Template out the nginx server file
@@ -62,22 +70,23 @@
     src: server.conf
     dest: /etc/nginx/conf.d/server.conf
     mode: u=rw,g=rw,o=r
+    trim_blocks: true
   register: nginx_server
 
 - name: Enable nginx
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: nginx
     state: started
     enabled: true
 
 - name: Start nginx
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: nginx
     state: started
   register: nginx_started
 
 - name: Restart nginx if necessary
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: nginx
     state: restarted
   when:

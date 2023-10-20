@@ -22,7 +22,7 @@
     state: directory
     follow: false
 
-- name: Configure docker daemon
+- name: Configure dockerd
   ansible.builtin.copy:
     # language=json
     content: |
@@ -35,18 +35,18 @@
   register: docker_daemon_config
 
 - name: Enable the Docker daemon
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: docker
     enabled: true
 
 - name: Start the Docker daemon
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: docker
     state: started
   register: docker_daemon_started
 
 - name: Restart the Docker daemon
-  ansible.builtin.systemd_service:
+  ansible.builtin.service:
     name: docker
     state: restarted
   when: docker_daemon_config is changed and docker_daemon_started is not changed

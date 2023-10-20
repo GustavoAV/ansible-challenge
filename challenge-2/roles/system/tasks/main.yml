@@ -2,6 +2,9 @@
 - name: Include distro-specific variables
   ansible.builtin.include_vars:
     file: "{{ ansible_distribution }}.yml"
+    extensions:
+      - yaml
+      - yml
 
 - name: Increase inotify limit
   ansible.posix.sysctl:
