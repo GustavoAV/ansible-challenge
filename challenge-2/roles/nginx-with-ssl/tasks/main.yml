@@ -45,8 +45,10 @@
 - name: Ensure that the server certificate is valid after one year - fail if it will expire
   community.crypto.x509_certificate_info:
     path: *cert_path
+    valid_at:
+      time: "+31536000s"
     # provider: assertonly
-    valid_at: "31536000"
+    # valid_at: "31536000"
 
 - name: Template out the nginx config file
   ansible.builtin.template:
